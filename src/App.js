@@ -6,7 +6,7 @@ export default function Portfolio() {
   const [activeSection, setActiveSection] = useState('home');
   const [scrolled, setScrolled] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '',number: '', email: '', message: '' });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,11 +44,50 @@ export default function Portfolio() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // Basic frontend validation (optional)
+  if (!formData.name || !formData.email || !formData.message || !formData.number) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  try {
+    const response = await fetch("https://server-topaz-nine-25.vercel.app/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        
+      },
+      body: JSON.stringify(formData),
+      
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      // If backend sends validation errors
+      if (data.error) {
+        // Assuming backend sends { errors: { email: "Invalid email", name: "Required" } }
+        
+        alert(`Validation Error:  ${data.error}`);
+      
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+      return;
+    }
+
+    // On success
     alert(`Thank you ${formData.name}! Your message has been received.`);
-    setFormData({ name: '', email: '', message: '' });
-  };
+    setFormData({ name: "", number: "", email: "", message: "" });
+
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("Network error. Please try again later.",error);
+  }
+};
+
 
   const technologies = [
     { name: 'React', icon: '⚛️' },
@@ -220,13 +259,13 @@ export default function Portfolio() {
               </button>
             </div>
             <div className="flex gap-4 pt-4">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-800 rounded-lg hover:bg-purple-600 transition-all transform hover:scale-110">
+              <a href="https://github.com/Nayan-hub-nayan" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-800 rounded-lg hover:bg-purple-600 transition-all transform hover:scale-110">
                 <Github size={20} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-800 rounded-lg hover:bg-purple-600 transition-all transform hover:scale-110">
+              <a href="https://in.linkedin.com/in/nayan-kawalkar-164725352">
                 <Linkedin size={20} />
               </a>
-              <a href="mailto:contact@example.com" className="p-3 bg-slate-800 rounded-lg hover:bg-purple-600 transition-all transform hover:scale-110">
+              <a href="mailto:nayankawalkar07@gmail.com" className="p-3 bg-slate-800 rounded-lg hover:bg-purple-600 transition-all transform hover:scale-110">
                 <Mail size={20} />
               </a>
             </div>
@@ -414,6 +453,16 @@ export default function Portfolio() {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm mb-2 font-medium text-gray-300">Your Number</label>
+                  <input
+                    type="text"
+                    value={formData.number}
+                    onChange={(e) => setFormData({...formData, number: e.target.value})} 
+                    placeholder="what's your number?"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg focus:border-purple-600 focus:outline-none transition-all text-white placeholder-gray-500"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm mb-2 font-medium text-gray-300">Your Email</label>
                   <input
                     type="email"
@@ -464,13 +513,13 @@ export default function Portfolio() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400">© 2025 Nayan Kawalkar. All rights reserved.</p>
             <div className="flex gap-6">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors">
+              <a href="https://github.com/Nayan-hub-nayan" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors">
                 <Github size={20} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors">
+              <a href="https://in.linkedin.com/in/nayan-kawalkar-164725352" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors">
                 <Linkedin size={20} />
               </a>
-              <a href="mailto:contact@example.com" className="text-gray-400 hover:text-purple-400 transition-colors">
+              <a href="mailto:nayankawalkar07@gmail.com" className="text-gray-400 hover:text-purple-400 transition-colors">
                 <Mail size={20} />
               </a>
             </div>
