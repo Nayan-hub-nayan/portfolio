@@ -1,0 +1,467 @@
+// models/User.js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const UserSchema = new Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  passwordHash: {
+    type: String,
+    required: true
+  },
+  firstName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
+  role: {
+    type: String,
+    enum: ['CLIENT', 'EMPLOYEE', 'ADMIN'],
+    default: 'CLIENT'
+  },
+  profileImage: String,
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  refreshToken: String,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create index for email for faster lookups
+UserSchema.index({ email: 1 });
+
+// models/Client.js
+const ClientSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  companyName: String,
+  address: String,
+  joinedDate: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// models/Employee.js
+const EmployeeSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  department: String,
+  position: String,
+  joinedDate: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// models/Admin.js
+const AdminSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  permissions: [String],
+  isSuperAdmin: {
+    type: Boolean,
+    default: false
+  }
+});
+
+// models/Project.js
+const ProjectSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: String,
+  startDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: Date,
+  status: {
+    type: String,
+    enum: ['PLANNING', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'],
+    default: 'ACTIVE'
+  },
+  client: {
+    type: Schema.Types.ObjectId,
+    ref: 'Client',
+    required: true
+  }
+});
+
+// Create compound index for client and name
+ProjectSchema.index({ client: 1, name: 1 });
+
+// models/Ticket.js
+const TicketSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  priority: {
+    type: String,
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
+    default: 'MEDIUM'
+  },
+  status: {
+    type: String,
+    enum: ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'],
+    default: 'OPEN'
+  },
+  project: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true
+  },
+  assignedTo: {
+    type: Schema.Types.ObjectId,
+    ref: 'Employee'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create index for project and status for faster filtering
+TicketSchema.index({ project: 1, status: 1 });
+TicketSchema.index({ assignedTo: 1 });
+
+// models/Task.js
+const TaskSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  priority: {
+    type: String,
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
+    default: 'MEDIUM'
+  },
+  status: {
+    type: String,
+    enum: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'BLOCKED'],
+    default: 'TODO'
+  },
+  dueDate: Date,
+  estimatedHours: Number,
+  actualHours: Number,
+  project: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true
+  },
+  assignedTo: {
+    type: Schema.Types.ObjectId,
+    ref: 'Employee',
+    required: true
+  },
+  relatedTicket: {
+    type: Schema.Types.ObjectId,
+    ref: 'Ticket'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create indexes for common queries
+TaskSchema.index({ assignedTo: 1, status: 1 });
+TaskSchema.index({ project: 1 });
+TaskSchema.index({ relatedTicket: 1 });
+
+// models/Attachment.js
+const AttachmentSchema = new Schema({
+  fileName: {
+    type: String,
+    required: true
+  },
+  fileType: {
+    type: String,
+    required: true
+  },
+  fileUrl: {
+    type: String,
+    required: true
+  },
+  fileSize: {
+    type: Number,
+    required: true
+  },
+  ticket: {
+    type: Schema.Types.ObjectId,
+    ref: 'Ticket',
+    required: true
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// models/Comment.js
+const CommentSchema = new Schema({
+  content: {
+    type: String,
+    required: true
+  },
+  author: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  ticket: {
+    type: Schema.Types.ObjectId,
+    ref: 'Ticket'
+  },
+  task: {
+    type: Schema.Types.ObjectId,
+    ref: 'Task'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create indexes for ticket and task comments
+CommentSchema.index({ ticket: 1, createdAt: 1 });
+CommentSchema.index({ task: 1, createdAt: 1 });
+
+// models/ProjectUpdate.js
+const ProjectUpdateSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  project: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true
+  },
+  isPublished: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create index for project updates
+ProjectUpdateSchema.index({ project: 1, createdAt: -1 });
+
+// models/BillingDetail.js
+const BillingDetailSchema = new Schema({
+  client: {
+    type: Schema.Types.ObjectId,
+    ref: 'Client',
+    required: true
+  },
+  paymentMethod: String,
+  billingAddress: String,
+  taxId: String,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// models/BillingItem.js
+const BillingItemSchema = new Schema({
+  description: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  currency: {
+    type: String,
+    default: 'USD'
+  },
+  status: {
+    type: String,
+    enum: ['DRAFT', 'PENDING', 'PAID', 'OVERDUE', 'CANCELLED'],
+    default: 'PENDING'
+  },
+  dueDate: Date,
+  paidDate: Date,
+  project: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true
+  },
+  billingDetail: {
+    type: Schema.Types.ObjectId,
+    ref: 'BillingDetail',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create indexes for billing
+BillingItemSchema.index({ billingDetail: 1 });
+BillingItemSchema.index({ project: 1 });
+BillingItemSchema.index({ status: 1 });
+
+// models/Notification.js
+const NotificationSchema = new Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  isRead: {
+    type: Boolean,
+    default: false
+  },
+  type: {
+    type: String,
+    enum: ['TICKET', 'TASK', 'PROJECT', 'BILLING', 'SYSTEM'],
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create index for unread notifications
+NotificationSchema.index({ user: 1, isRead: 1, createdAt: -1 });
+
+// models/Activity.js
+const ActivitySchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  action: {
+    type: String,
+    required: true
+  },
+  entityType: {
+    type: String,
+    enum: ['USER', 'PROJECT', 'TICKET', 'TASK', 'BILLING', 'SYSTEM'],
+    required: true
+  },
+  entityId: {
+    type: Schema.Types.ObjectId,
+    required: true
+  },
+  details: {
+    type: Object
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Create index for activity logs
+ActivitySchema.index({ user: 1, createdAt: -1 });
+ActivitySchema.index({ entityType: 1, entityId: 1 });
+
+// Export all models
+module.exports = {
+  User: mongoose.model('User', UserSchema),
+  Client: mongoose.model('Client', ClientSchema),
+  Employee: mongoose.model('Employee', EmployeeSchema),
+  Admin: mongoose.model('Admin', AdminSchema),
+  Project: mongoose.model('Project', ProjectSchema),
+  Ticket: mongoose.model('Ticket', TicketSchema),
+  Task: mongoose.model('Task', TaskSchema),
+  Attachment: mongoose.model('Attachment', AttachmentSchema),
+  Comment: mongoose.model('Comment', CommentSchema),
+  ProjectUpdate: mongoose.model('ProjectUpdate', ProjectUpdateSchema),
+  BillingDetail: mongoose.model('BillingDetail', BillingDetailSchema),
+  BillingItem: mongoose.model('BillingItem', BillingItemSchema),
+  Notification: mongoose.model('Notification', NotificationSchema),
+  Activity: mongoose.model('Activity', ActivitySchema)
+};
